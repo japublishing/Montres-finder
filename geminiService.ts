@@ -28,9 +28,8 @@ const WATCH_SCHEMA = {
 };
 
 export const getWatchRecommendations = async (prefs: UserPreferences): Promise<RecommendationResponse> => {
-  // Initialisation à l'intérieur de la fonction pour plus de robustesse
-  const apiKey = typeof process !== 'undefined' ? process.env.API_KEY : "";
-  const ai = new GoogleGenAI({ apiKey: apiKey || "" });
+  // On utilise directement process.env.API_KEY comme recommandé
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || "" });
   
   const stylesStr = prefs.style.includes('Je ne sais pas encore') 
     ? "l'utilisateur n'est pas sûr de son style, suggère des pièces iconiques et polyvalentes" 
@@ -66,7 +65,8 @@ export const getWatchRecommendations = async (prefs: UserPreferences): Promise<R
       },
     });
 
-    const data = JSON.parse(response.text || "{}");
+    const text = response.text || "{}";
+    const data = JSON.parse(text);
     
     // On génère des images basées sur les modèles trouvés
     data.watches = data.watches.map((w: any) => ({
