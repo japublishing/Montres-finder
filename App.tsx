@@ -20,8 +20,8 @@ import {
   Eye,
   Globe
 } from 'lucide-react';
-import { Step, UserPreferences, RecommendationResponse } from './types';
-import { getWatchRecommendations } from './geminiService';
+import { Step, UserPreferences, RecommendationResponse } from './types.ts';
+import { getWatchRecommendations } from './geminiService.ts';
 
 const App: React.FC = () => {
   const [currentStep, setCurrentStep] = useState<Step>(Step.Intro);

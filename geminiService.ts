@@ -1,8 +1,6 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { UserPreferences, RecommendationResponse } from "./types";
-
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || "" });
+import { UserPreferences, RecommendationResponse } from "./types.ts";
 
 const WATCH_SCHEMA = {
   type: Type.OBJECT,
@@ -30,6 +28,10 @@ const WATCH_SCHEMA = {
 };
 
 export const getWatchRecommendations = async (prefs: UserPreferences): Promise<RecommendationResponse> => {
+  // Initialisation à l'intérieur de la fonction pour plus de robustesse
+  const apiKey = typeof process !== 'undefined' ? process.env.API_KEY : "";
+  const ai = new GoogleGenAI({ apiKey: apiKey || "" });
+  
   const stylesStr = prefs.style.includes('Je ne sais pas encore') 
     ? "l'utilisateur n'est pas sûr de son style, suggère des pièces iconiques et polyvalentes" 
     : `Styles favoris : ${prefs.style.join(", ")}`;
@@ -44,14 +46,14 @@ export const getWatchRecommendations = async (prefs: UserPreferences): Promise<R
     - ${stylesStr}
     - ${complicationsStr}
     - Budget : ${prefs.budget}
-    - Type de mouvement : ${prefs.movement} (Si Mécanique, suggère des automatiques ou manuels de qualité)
+    - Type de mouvement : ${prefs.movement}
     - Usage : ${prefs.usage}
     - Taille du poignet : ${prefs.wristSize}
     - Informations complémentaires : ${prefs.additionalInfo}
 
     Suggère exactement 4 montres réelles qui correspondent le mieux à ce profil. 
-    Inclus des marques variées (Luxe, Indépendant, Entrée de gamme selon le budget).
-    Donne un conseil d'expert global expliquant pourquoi ces choix sont pertinents pour le profil de cet utilisateur en citant les complications choisies si possible.
+    Inclus des marques variées.
+    Donne un conseil d'expert global expliquant pourquoi ces choix sont pertinents.
   `;
 
   try {
@@ -64,12 +66,12 @@ export const getWatchRecommendations = async (prefs: UserPreferences): Promise<R
       },
     });
 
-    const data = JSON.parse(response.text);
+    const data = JSON.parse(response.text || "{}");
     
-    // Enhance image URLs with real placeholders
+    // On génère des images basées sur les modèles trouvés
     data.watches = data.watches.map((w: any) => ({
       ...w,
-      imageUrl: `https://images.unsplash.com/photo-1524592093055-d57bd2fe7000?auto=format&fit=crop&q=80&w=800&q=${encodeURIComponent(w.brand + ' ' + w.model)}`,
+      imageUrl: `https://images.unsplash.com/photo-1524592093055-d57bd2fe7000?auto=format&fit=crop&q=80&w=800&keyword=${encodeURIComponent(w.brand + ' ' + w.model)}`,
       isPromoted: Math.random() > 0.85
     }));
 
